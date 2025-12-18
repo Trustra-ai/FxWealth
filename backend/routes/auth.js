@@ -36,3 +36,5 @@ router.get("/me", auth, async (req, res) => {
 });
 
 module.exports = router;
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
