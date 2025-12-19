@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs'); // <- use bcryptjs, not bcrypt
+const bcrypt = require('bcryptjs');
 
 // Load environment variables
 dotenv.config();
@@ -17,11 +17,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connectionmongoose.connect(process.env.MONGO_URI)
+// MongoDB connection
+mongoose.connect(process.env.MONGO_URI, { dbName: 'TrustraFx', strictQuery: true })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error('MongoDB connection error:', err));
 
 // User schema and model
 const userSchema = new mongoose.Schema({
@@ -39,10 +38,7 @@ const User = mongoose.model('User', userSchema);
 app.post('/api/auth/register', async (req, res) => {
     try {
         const { name, email, password } = req.body;
-
-        if (!email || !password) {
-            return res.status(400).json({ message: 'Email and password required' });
-        }
+        if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ message: 'User already exists' });
@@ -56,11 +52,7 @@ app.post('/api/auth/register', async (req, res) => {
 
         res.status(201).json({
             token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-            },
+            user: { id: user._id, name: user.name, email: user.email },
         });
     } catch (err) {
         console.error(err);
@@ -72,7 +64,6 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-
         if (!email || !password) return res.status(400).json({ message: 'Email and password required' });
 
         const user = await User.findOne({ email });
@@ -85,11 +76,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         res.status(200).json({
             token,
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-            },
+            user: { id: user._id, name: user.name, email: user.email },
         });
     } catch (err) {
         console.error(err);
@@ -102,7 +89,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'TrustraFx API running' });
 });
 
-// Start server on all interfaces for Termux
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
