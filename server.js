@@ -8,19 +8,22 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 
 // Load environment variables
-dotenv.config({ path: path.resolve(__dirname, '.env') }); // ensures correct .env path
+dotenv.config({ path: path.resolve(__dirname, '.env') }); // ensures .env loads correctly
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
 
-// Debug environment variables
-console.log('MONGO_URI:', process.env.MONGO_URI);
+// Debug: check env variables
+console.log('Loaded MONGO_URI:', process.env.MONGO_URI);
 console.log('JWT_SECRET:', JWT_SECRET);
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Mongoose global setting for strictQuery
+mongoose.set('strictQuery', true);
 
 // MongoDB connection
 if (!process.env.MONGO_URI) {
@@ -28,7 +31,7 @@ if (!process.env.MONGO_URI) {
     process.exit(1);
 }
 
-mongoose.connect(process.env.MONGO_URI, { dbName: 'TrustraFx', strictQuery: true })
+mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('MongoDB connection error:', err));
 
@@ -99,7 +102,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'TrustraFx API running' });
 });
 
-// Start server
+// Start server on all interfaces (Termux compatible)
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
