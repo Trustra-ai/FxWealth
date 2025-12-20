@@ -1,69 +1,30 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import axios from 'axios';
-
-// Pages
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-
-// Set base URL for API
-axios.defaults.baseURL = '/api';
+import Dashboard from './components/Dashboard';
 
 function App() {
-  const [token, setToken] = useState(localStorage.getItem('token') || '');
-  const [role, setRole] = useState(localStorage.getItem('role') || '');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
+      setIsLoggedIn(true);
     }
-  }, [token]);
+  }, []);
 
-  const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!token) return <Navigate to="/login" />;
-    if (allowedRoles && !allowedRoles.includes(role)) return <Navigate to="/" />;
-    return children;
-  };
-
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    setToken('');
-    setRole('');
-  };
+  if (isLoggedIn) {
+    return <Dashboard />;
+  }
 
   return (
-    <Router>
-      <nav>
-        <a href="/">TrustraFx</a> | 
-        {!token ? (
-          <>
-            <a href="/login">Login</a> | 
-            <a href="/register">Register</a>
-          </>
-        ) : (
-          <>
-            {role === 'admin' ? <a href="/admin">Admin</a> : <a href="/dashboard">Dashboard</a>} | 
-            <a href="#" onClick={logout}>Logout</a>
-          </>
-        )}
-      </nav>
-      <div className="container">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login setToken={setToken} setRole={setRole} />} />
-          <Route path="/register" element={<Register setToken={setToken} setRole={setRole} />} />
-          <Route path="/dashboard" element={<ProtectedRoute allowedRoles={['user', 'admin']}><UserDashboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-        </Routes>
+    <div style={{ padding: '40px', textAlign: 'center', fontFamily: 'Arial' }}>
+      <h1>Welcome to TrustraFx</h1>
+      <p>Secure Forex & Crypto Investment Platform</p>
+      <div style={{ margin: '30px 0' }}>
+        <a href="/register" style={{ margin: '0 10px', padding: '10px 20px', background: '#007bff', color: 'white', textDecoration: 'none' }}>Register</a>
+        <a href="/login" style={{ margin: '0 10px', padding: '10px 20px', background: '#28a745', color: 'white', textDecoration: 'none' }}>Login</a>
       </div>
-    </Router>
+    </div>
   );
 }
 
-export default App;
+export default App;i
