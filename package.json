@@ -1,7 +1,7 @@
 {
   "name": "trustrafx",
   "version": "1.0.0",
-  "description": "TrustraFx - Real Cryptocurrency & Forex Investment Platform",
+  "description": "TrustraFx - Real Investment Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

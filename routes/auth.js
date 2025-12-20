@@ -5,31 +5,21 @@ const User = require('../models/User');
 
 const router = express.Router();
 
-// Register - Real Account Creation
+// Register
 router.post('/register', async (req, res) => {
   try {
     const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ error: 'Missing fields' });
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
-    }
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ error: 'Email already used' });
 
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
-    }
-
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
-    const user = new User({ email: email.toLowerCase(), password });
+    const user = new User({ email, password });
     await user.save();
 
-    res.status(201).json({ message: 'Account created successfully. You can now log in.' });
+    res.json({ message: 'Registered successfully' });
   } catch (err) {
-    console.error('Register error:', err);
-    res.status(500).json({ error: 'Server error during registration' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -37,31 +27,16 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const user = await User.findOne({ email: email.toLowerCase() });
-    if (!user) {
-      return res.status(400).json({ error: 'Invalid email or password' });
-    }
+    const match = await user.comparePassword(password);
+    if (!match) return res.status(400).json({ error: 'Invalid credentials' });
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid email or password' });
-    }
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-
-    res.json({
-      message: 'Login successful',
-      token,
-      user: { email: user.email }
-    });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, message: 'Login successful' });
   } catch (err) {
-    console.error('Login error:', err);
-    res.status(500).json({ error: 'Server error during login' });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
